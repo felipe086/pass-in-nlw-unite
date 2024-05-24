@@ -1,41 +1,61 @@
-import fastify, { errorCodes } from "fastify"
+import fastify from "fastify"
 import { z } from "zod"
+import {
+  serializerCompiler,
+  validatorCompiler,
+  ZodTypeProvider,
+} from "fastify-type-provider-zod"
 import { prisma } from "./lib/prisma"
 import { generateSlug } from "./utils/generate-slug"
 const PORT = 3333
 
 const app = fastify()
 
-app.post("/events", async (req, reply) => {
-  const requestBodySchema = z.object({
-    title: z.string().min(4),
-    details: z.string().nullable(),
-    maximumAttendees: z.number().int().positive().nullable(),
-  })
-  const { title, details, maximumAttendees } = requestBodySchema.parse(req.body)
+app.setValidatorCompiler(validatorCompiler)
+app.setSerializerCompiler(serializerCompiler)
 
-  const slug = generateSlug(title)
-
-  const eventWithSameSlug = await prisma.event.findUnique({
-    where: {
-      slug,
+app.withTypeProvider<ZodTypeProvider>().post(
+  "/events",
+  {
+    schema: {
+      body: z.object({
+        title: z.string().min(4),
+        details: z.string().nullable(),
+        maximumAttendees: z.number().int().positive().nullable(),
+      }),
+      response: {
+        201: z.object({
+          eventId: z.string().uuid(),
+        }),
+      },
     },
-  })
+  },
+  async (req, reply) => {
+    const { title, details, maximumAttendees } = req.body
 
-  if (eventWithSameSlug)
-    throw new Error("Another event with same title already exists.")
+    const slug = generateSlug(title)
 
-  const event = await prisma.event.create({
-    data: {
-      title,
-      details,
-      slug,
-      maximumAttendees,
-    },
-  })
+    const eventWithSameSlug = await prisma.event.findUnique({
+      where: {
+        slug,
+      },
+    })
 
-  return reply.status(201).send({ eventId: event.id })
-})
+    if (eventWithSameSlug)
+      throw new Error("Another event with same title already exists.")
+
+    const event = await prisma.event.create({
+      data: {
+        title,
+        details,
+        slug,
+        maximumAttendees,
+      },
+    })
+
+    return reply.status(201).send({ eventId: event.id })
+  }
+)
 
 app
   .listen({ port: PORT })

@@ -26,5 +26,8 @@ model Attendee {
   eventId   String   @map("event_id")
   event     Event    @relation(fields: [eventId], references: [id])
 
+  // Não se pode ter mais de um email em um evento, e vice-versa, 
+  // a combinação dos campos deve ser unica
+  @@unique([eventId, email])
   @@map("attendees")
 }

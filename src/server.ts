@@ -1,4 +1,5 @@
 import fastify from "fastify"
+import fastifyCors from "@fastify/cors"
 import {
   serializerCompiler,
   validatorCompiler,
@@ -14,6 +15,10 @@ const PORT = 3333
 
 const app = fastify()
 
+app.register(fastifyCors, {
+  origin: "*",
+})
+
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
@@ -27,6 +32,6 @@ app.register(getEventAttendees)
 app.setErrorHandler(errorHandler)
 
 app
-  .listen({ port: PORT })
+  .listen({ port: PORT, host: "0.0.0.0" })
   .then(() => console.log(`Server running on http://localhost:${PORT}`))
   .catch((error) => console.error("Error starting server:", error))

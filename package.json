@@ -4,18 +4,25 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --env-file .env src/server.ts"
+    "dev": "tsx watch --env-file .env src/server.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "5.14.0",
+    "dayjs": "^1.11.11",
     "fastify": "^4.27.0",
     "fastify-type-provider-zod": "^1.2.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@types/node": "^20.12.12",
     "prisma": "^5.14.0",
     "tsx": "^4.10.5",
